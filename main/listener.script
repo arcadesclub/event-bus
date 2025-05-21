@@ -1,0 +1,19 @@
+-- main/listener.script
+local bus = require "modules.event_bus"
+
+local function on_global_damage(self, sender, dmg)
+    self.hp = self.hp - dmg
+    local message_to_print = self.id .. " hit by " .. tostring(sender) .. ". HP: " .. tostring(self.hp)
+    print(message_to_print)
+    if self.hp <= 0 then go.delete(self.id) end
+end
+
+function init(self)
+    self.id = go.get_id() -- necessário, pois go.get_id() dentro do callback sempre reflete o contexto no topo da pilha, ou seja, quem chamou publish(). Isso é inerente à VM única do Defold e não pode ser “fixado” em runtime. Por isso, a prática mais limpa é guardar self.id e usar o parâmetro sender para identificar o emissor
+    self.hp = 30
+    bus.subscribe("GLOBAL_DAMAGE", on_global_damage, self)
+end
+
+function final(self)
+    bus.unsubscribe("GLOBAL_DAMAGE", self)
+end

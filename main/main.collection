@@ -1,0 +1,14 @@
+name: "main"
+instances {
+  id: "Controller"
+  prototype: "/main/Controller.go"
+}
+instances {
+  id: "Target"
+  prototype: "/main/Target.go"
+}
+instances {
+  id: "Target1"
+  prototype: "/main/Target.go"
+}
+scale_along_z: 0
