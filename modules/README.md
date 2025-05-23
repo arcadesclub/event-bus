@@ -9,7 +9,7 @@ Event bus (pub/sub) 100 % Lua:
 
 ```lua
 -- publisher.script
-local bus = require "defold_event_bus.src.event_bus"
+local bus = require "modules.event_bus"
 
 function init(self)
     msg.post(".", "acquire_input_focus")
@@ -27,7 +27,7 @@ end
 
 ```lua
 -- main/listener.script
-local bus = require "main.event_bus"
+local bus = require "modules.event_bus"
 
 local function on_global_damage(self, sender, dmg)
     self.hp = self.hp - dmg
