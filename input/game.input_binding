@@ -2,7 +2,27 @@ key_trigger {
   input: KEY_SPACE
   action: "space"
 }
+key_trigger {
+  input: KEY_A
+  action: "all_events"
+}
+key_trigger {
+  input: KEY_0
+  action: "zero_events"
+}
+key_trigger {
+  input: KEY_1
+  action: "one_event"
+}
+key_trigger {
+  input: KEY_2
+  action: "two_events"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
-  action: "touch"
+  action: "attack_enemy_1"
+}
+mouse_trigger {
+  input: MOUSE_BUTTON_3
+  action: "attack_enemy_2"
 }

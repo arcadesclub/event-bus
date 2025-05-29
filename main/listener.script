@@ -1,19 +1,45 @@
 -- main/listener.script
 local bus = require "modules.event_bus"
+go.property("hp", 30)
+go.property("scope", hash("_global")) -- Escopo do listener, pode ser "global" ou "local"
 
-local function on_global_damage(self, sender, dmg)
-    self.hp = self.hp - dmg
-    local message_to_print = self.id .. " hit by " .. tostring(sender) .. ". HP: " .. tostring(self.hp)
+local function on_global_damage(self, sender, args)
+    if self.hp <= 0 then
+        print("Listener " .. go.get_id() .. " already destroyed, not processing additional damage.")
+        return -- não processa dano se já foi destruído
+    end
+
+    self.hp = self.hp - args.damage
+    local message_to_print = go.get_id() .. " hit by " .. sender .. ". HP: " .. self.hp
     print(message_to_print)
-    if self.hp <= 0 then go.delete(self.id) end
+    if self.hp <= 0 then go.delete() end
 end
 
 function init(self)
-    self.id = go.get_id() -- necessário, pois go.get_id() dentro do callback sempre reflete o contexto no topo da pilha, ou seja, quem chamou publish(). Isso é inerente à VM única do Defold e não pode ser “fixado” em runtime. Por isso, a prática mais limpa é guardar self.id e usar o parâmetro sender para identificar o emissor
-    self.hp = 30
-    bus.subscribe("GLOBAL_DAMAGE", on_global_damage, self)
+    msg.post(".", "acquire_input_focus")
+    bus.subscribe("GLOBAL_DAMAGE", on_global_damage, self, self.scope)
+    self.number_of_events_to_process = 0
 end
 
 function final(self)
-    bus.unsubscribe("GLOBAL_DAMAGE", self)
+    bus.unsubscribe("GLOBAL_DAMAGE", self, self.scope)
+end
+
+function update(self, dt)
+    bus.process(self, self.number_of_events_to_process) -- processa eventos pendentes para este contexto
+
+    self.number_of_events_to_process = 0
+end
+
+function on_input(self, action_id, action)
+    if action_id == hash("zero_events") and action.released then
+        self.number_of_events_to_process = 0
+    elseif action_id == hash("one_event") and action.released then
+        self.number_of_events_to_process = 1
+    elseif action_id == hash("two_events") and action.released then
+        self.number_of_events_to_process = 2
+    elseif action_id == hash("all_events") and action.released then
+        self.number_of_events_to_process = nil
+    end
+
 end

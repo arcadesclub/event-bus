@@ -4,11 +4,32 @@ instances {
   prototype: "/main/Controller.go"
 }
 instances {
-  id: "Target"
+  id: "Goblin"
   prototype: "/main/Target.go"
+  component_properties {
+    id: "listener"
+    properties {
+      id: "hp"
+      value: "100.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+  }
 }
 instances {
-  id: "Target1"
+  id: "Troll"
   prototype: "/main/Target.go"
+  component_properties {
+    id: "listener"
+    properties {
+      id: "hp"
+      value: "200.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+    properties {
+      id: "scope"
+      value: "enemy_2"
+      type: PROPERTY_TYPE_HASH
+    }
+  }
 }
 scale_along_z: 0

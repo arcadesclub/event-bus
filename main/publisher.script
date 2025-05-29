@@ -1,13 +1,19 @@
+local debugger = require('debugger.debugger')
+debugger.start()
+
+go.property("scope", hash("_global"))
+
 local bus = require "modules.event_bus"
 
 function init(self)
     msg.post(".", "acquire_input_focus")
+    self.current_damage = 10
 end
 
 function on_input(self, action_id, action)
-    if action_id == hash("touch") and action.released   -- clique/Toque
-    or (action_id == hash("space") and action.released) -- teclado
-    then
-        bus.publish("GLOBAL_DAMAGE", 10)
+    if action_id == hash("attack_enemy_1") and action.released then
+        bus.publish("GLOBAL_DAMAGE", { damage = self.current_damage }, self.scope) -- global, padrão
+    elseif action_id == hash("attack_enemy_2") and action.released then
+        bus.publish("GLOBAL_DAMAGE", { damage = self.current_damage }, hash("enemy_2"))
     end
 end

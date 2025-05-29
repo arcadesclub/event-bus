@@ -1,25 +1,30 @@
 # Defold Event Bus
 
 Event bus (pub/sub) 100 % Lua:
-* `subscribe(event, fn, ctx)`
-* `unsubscribe(event, ctx)`
-* `publish(event, ...)` — send via *(ctx, sender, ...)*
+* `subscribe(event, fn, ctx [, scope])`
+* `unsubscribe(event, ctx [, scope])`
+* `publish(event, args, scope)` 
 
 ## How To Use
 
+Um consumidor deve se inscrever para o evento e o canal. O produtor deve publicar um evento no canal.
+
+- `ctx`: contexto que se deseja enviar para a função de callback informada no subscribe (isso é necessário, pois self não estará disponível ao processar o evento, pois fará parte de outra pilha de execução)
+- `args`: deve ser nil ou table
+
 ```lua
 -- publisher.script
-local bus = require "defold_event_bus.src.event_bus"
+local bus = require "modules.event_bus"
 
 function init(self)
     msg.post(".", "acquire_input_focus")
 end
 
 function on_input(self, action_id, action)
-    if action_id == hash("touch") and action.released   -- click/touch
-    or (action_id == hash("space") and action.released) -- keyboard
-    then
-        bus.publish("GAME.GLOBAL_DAMAGE", 10)
+    if action_id == hash("attack_enemy_1") and action.released then
+        bus.publish("GLOBAL_DAMAGE", { damage = 10 }, hash("enemy_1"))
+    elseif action_id == hash("attack_enemy_2") and action.released then
+        bus.publish("GLOBAL_DAMAGE", { damage = 10 }, hash("enemy_2"))
     end
 end
 
@@ -29,21 +34,30 @@ end
 -- main/listener.script
 local bus = require "main.event_bus"
 
-local function on_global_damage(self, sender, dmg)
-    self.hp = self.hp - dmg
-    local message_to_print = self.id .. " hit by " .. tostring(sender) .. ". HP: " .. tostring(self.hp)
+local function on_global_damage(self, sender, args)
+    self.hp = self.hp - args.damage
+    local message_to_print = go.get_id() .. " hit by " .. sender .. ". HP: " .. self.hp
     print(message_to_print)
-    if self.hp <= 0 then go.delete(self.id) end
+    if self.hp <= 0 then go.delete() end
 end
 
 function init(self)
-    self.id = go.get_id() -- necessary because go.get_id() inside the callback always reflects the context at the top of the stack, that is, whoever called publish(). This is inherent to Defold's single VM and cannot be "fixed" at runtime. Therefore, the cleanest practice is to store self.id and use the sender parameter to identify the emitter
-    self.hp = 30
-    bus.subscribe("GAME.GLOBAL_DAMAGE", on_global_damage, self)
+    msg.post(".", "acquire_input_focus")
+    bus.subscribe("GLOBAL_DAMAGE", on_global_damage, self, hash("enemy_2"))
+end
+
+function update(self, dt)
+    --[[
+    A quantidade de eventos que deseja processar é opcional, mas:
+        - <= 0: não processar nada;
+        - nil: processar tudo;
+    Após o evento ser processado, ele é removido da fila
+    ]]
+    bus.process(self, 1)
 end
 
 function final(self)
-    bus.unsubscribe("GAME.GLOBAL_DAMAGE", self)
+    bus.unsubscribe("GLOBAL_DAMAGE", self, hash("enemy_2"))
 end
 
 ```
