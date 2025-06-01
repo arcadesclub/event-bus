@@ -35,8 +35,11 @@ end
 local bus = require "main.event_bus"
 
 local function on_global_damage(self, sender, args)
+    -- msg.url() is the URL of the GO that sent the message.
+    -- This allows for better context handling in the event bus.
+    local sender_id = sender.path
     self.hp = self.hp - args.damage
-    local message_to_print = go.get_id() .. " hit by " .. sender .. ". HP: " .. self.hp
+    local message_to_print = go.get_id() .. " hit by " .. sender_id .. ". HP: " .. self.hp
     print(message_to_print)
     if self.hp <= 0 then go.delete() end
 end

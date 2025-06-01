@@ -1,6 +1,7 @@
 local debugger = require('debugger.debugger')
 debugger.start()
 
+go.property("hp", 10)
 go.property("scope", hash("_global"))
 
 local bus = require "modules.event_bus"

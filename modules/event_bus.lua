@@ -78,8 +78,10 @@ function M.publish(event, args, scope)
     local list = scopes[scope]
     if not list then return end
 
-    local sender = go.get_id()
-
+    -- msg.url() is the URL of the GO that sent the message.
+    -- This allows for better context handling in the event bus.
+    local sender = msg.url()
+    
     for ctx, fn in pairs(list) do
         local q = queue[ctx]
         if not q then

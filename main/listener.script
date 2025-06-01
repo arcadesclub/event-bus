@@ -1,16 +1,26 @@
 -- main/listener.script
 local bus = require "modules.event_bus"
+
 go.property("hp", 30)
 go.property("scope", hash("_global")) -- Escopo do listener, pode ser "global" ou "local"
 
 local function on_global_damage(self, sender, args)
+
+    local sender_id = sender.path -- Obtém o ID do emissor
+    local sender_scope = go.get(sender, "scope")
+    local sender_hp = go.get(sender, "hp")
+
+    print("Sender ID: " .. sender_id)
+    print(sender_scope)
+    print(sender_hp)
+
     if self.hp <= 0 then
         print("Listener " .. go.get_id() .. " already destroyed, not processing additional damage.")
         return -- não processa dano se já foi destruído
     end
 
     self.hp = self.hp - args.damage
-    local message_to_print = go.get_id() .. " hit by " .. sender .. ". HP: " .. self.hp
+    local message_to_print = go.get_id() .. " hit by " .. sender_id .. ". HP: " .. self.hp
     print(message_to_print)
     if self.hp <= 0 then go.delete() end
 end
